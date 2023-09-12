@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Vishal Ahirwar | Valiant Play
 
 #pragma once
 
@@ -25,7 +25,7 @@ private:
 	IOnlineSessionPtr sessionInterface;
 	//delegate
 	FDelegateHandle createSessionHandle;
-	FOnCreateSessionCompleteDelegate sessionCreateCompleteDelegate;
+	FOnCreateSessionCompleteDelegate createSessionCompleteDelegate;
 	FDelegateHandle findSessionHandle;
 	FOnFindSessionsCompleteDelegate findSessionCompleteDelegate;
 	FDelegateHandle joinSessionHandle;
