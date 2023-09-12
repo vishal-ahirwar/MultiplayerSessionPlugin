@@ -23,6 +23,22 @@ public:
 	void startSession();//start the actual session after creation of session
 private:
 	IOnlineSessionPtr sessionInterface;
-protected:
+	//delegate
+	FDelegateHandle createSessionHandle;
+	FOnCreateSessionCompleteDelegate sessionCreateCompleteDelegate;
+	FDelegateHandle findSessionHandle;
+	FOnFindSessionsCompleteDelegate findSessionCompleteDelegate;
+	FDelegateHandle joinSessionHandle;
+	FOnJoinSessionCompleteDelegate joinSessionCompleteDelegate;
+	FDelegateHandle destroySessionHandle;
+	FOnDestroySessionCompleteDelegate destroySessionCompleleDelegate;
+	FDelegateHandle startSessionHandle;
+	FOnStartSessionCompleteDelegate startSessionCompleteDelegate;
 
+protected:
+	void onCreateSessionComplete(FName sessionName, bool bWasSuccessfull);
+	void onFindSessionComplete(bool bWasSuccessfull);
+	void onJoinSessionComplete(FName sessionName, EOnJoinSessionCompleteResult::Type result);
+	void onDestroySessionComplete(FName sessionName, bool bWasSuccessfull);
+	void onStartSessionComplete(FName sessionName, bool bWasSuccessfulls);
 };

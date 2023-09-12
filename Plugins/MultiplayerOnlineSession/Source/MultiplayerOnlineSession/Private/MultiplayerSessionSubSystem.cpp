@@ -31,3 +31,23 @@ void UMultiplayerSessionSubSystem::destroySession()
 void UMultiplayerSessionSubSystem::startSession()
 {
 }
+
+void UMultiplayerSessionSubSystem::onCreateSessionComplete(FName sessionName, bool bWasSuccessfull)
+{
+}
+
+void UMultiplayerSessionSubSystem::onFindSessionComplete(bool bWasSuccessfull)
+{
+}
+
+void UMultiplayerSessionSubSystem::onJoinSessionComplete(FName sessionName, EOnJoinSessionCompleteResult::Type result)
+{
+}
+
+void UMultiplayerSessionSubSystem::onDestroySessionComplete(FName sessionName, bool bWasSuccessfull)
+{
+}
+
+void UMultiplayerSessionSubSystem::onStartSessionComplete(FName sessionName, bool bWasSuccessfulls)
+{
+}
