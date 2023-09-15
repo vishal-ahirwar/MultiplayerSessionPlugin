@@ -10,6 +10,17 @@
 /**
  * 
  */
+
+//
+//...Custom delegates
+//
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemCreateSessionDelegate, bool, bWasSuccessfull);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerSubSystemJoinSessionDelegate, const TArray<FOnlineSessionSearchResult>&searchResults,bool bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemJoinSessionCompleteDelegate,EOnJoinSessionCompleteResult::Type result);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemDestroySessionDelegate, bool, bWasSuccessful);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemStartSessionDelegate, bool, bWasSuccessfulls);
+
 UCLASS()
 class MULTIPLAYERONLINESESSION_API UMultiplayerSessionSubSystem : public UGameInstanceSubsystem
 {
@@ -21,21 +32,33 @@ public:
 	void joinSession(const FOnlineSessionSearchResult&/*search results as out param*/);//join session
 	void destroySession();//destroy session
 	void startSession();//start the actual session after creation of session
+	FMultiplayerSubSystemCreateSessionDelegate multiplayerSubSystemCreateSessionDelegate;
 private:
 	IOnlineSessionPtr sessionInterface;
-	//delegate
+	//delegate and delegate handles to store them for clearence of delegates
 	FDelegateHandle createSessionHandle;
 	FOnCreateSessionCompleteDelegate createSessionCompleteDelegate;
+	//...
+
 	FDelegateHandle findSessionHandle;
 	FOnFindSessionsCompleteDelegate findSessionCompleteDelegate;
+	//...
+
 	FDelegateHandle joinSessionHandle;
 	FOnJoinSessionCompleteDelegate joinSessionCompleteDelegate;
+	//...
+
 	FDelegateHandle destroySessionHandle;
 	FOnDestroySessionCompleteDelegate destroySessionCompleleDelegate;
+	//...
+
 	FDelegateHandle startSessionHandle;
 	FOnStartSessionCompleteDelegate startSessionCompleteDelegate;
+	//...
 
+	TSharedPtr<FOnlineSessionSettings>sessionSettings;
 protected:
+	//Callbacks for Delegates 
 	void onCreateSessionComplete(FName sessionName, bool bWasSuccessfull);
 	void onFindSessionComplete(bool bWasSuccessfull);
 	void onJoinSessionComplete(FName sessionName, EOnJoinSessionCompleteResult::Type result);

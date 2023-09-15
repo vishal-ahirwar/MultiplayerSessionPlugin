@@ -118,7 +118,7 @@ void AMenuSystemCharacter::onCreateSessionCompleted(FName sessionName_, bool bSu
 		if (GEngine)  GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString("Session has been created!"));
 		else UE_LOG(LogTemp, Warning, TEXT("GEngine is pointing to null! btw the session has been created!"))
 
-			UWorld* world = GetWorld();
+		UWorld* world = GetWorld();
 		if (world)
 		{
 			world->ServerTravel(TEXT("/Game/ThirdPerson/Maps/Lobby?listen"),ETravelType::TRAVEL_Absolute);
