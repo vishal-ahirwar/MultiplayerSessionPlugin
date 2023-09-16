@@ -3,11 +3,15 @@
 
 #include "MultiplayerMenu.h"
 #include"Components/Button.h"
+#include"OnlineSubsystem.h"
+
 #include"MultiplayerSessionSubSystem.h"
+
+
 void UMultiplayerMenu::MenuSetup(int32 numPublicConnecttion,FString typeOfMatch)
 {
 	this->numberOfPublicConnection = numPublicConnecttion;
-	this->MatchType = typeOfMatch;
+	this->matchType = typeOfMatch;
 	AddToViewport();
 	UWorld* world = GetWorld();
 	if (world)
@@ -24,7 +28,15 @@ void UMultiplayerMenu::MenuSetup(int32 numPublicConnecttion,FString typeOfMatch)
 	{
 		this->multiplayerSessionSubSystem = gameInstance->GetSubsystem<UMultiplayerSessionSubSystem>();
 	};
-	if (multiplayerSessionSubSystem)multiplayerSessionSubSystem->multiplayerSubSystemCreateSessionDelegate.AddDynamic(this,&UMultiplayerMenu::onCreateSessionComplete);
+	if (multiplayerSessionSubSystem)
+	{
+		multiplayerSessionSubSystem->multiplayerSubSystemCreateSessionDelegate.AddDynamic(this, &UMultiplayerMenu::onCreateSessionCompleted);
+		multiplayerSessionSubSystem->multiplayerSubSystemDestroySessionDelegate.AddDynamic(this, &UMultiplayerMenu::onDestroySessionCompleted);
+		multiplayerSessionSubSystem->multiplayerSubSystemFindSessionDelegate.AddUObject(this, &UMultiplayerMenu::onFindSessionCompleted);
+		multiplayerSessionSubSystem->multiplayerSubSystemJoinsessionDelegate.AddUObject(this, &UMultiplayerMenu::onJoinSessionCompleted);
+		multiplayerSessionSubSystem->multiplayerSubSystemStartSessionDelegate.AddDynamic(this, &UMultiplayerMenu::onStartSessionCompleted);
+	};
+
 };
 
 void UMultiplayerMenu::MenuTearDown()
@@ -34,13 +46,14 @@ void UMultiplayerMenu::MenuTearDown()
 	if (world)
 	{
 		APlayerController* controller = world->GetFirstPlayerController();
+		if (!controller)return;
 		controller->bShowMouseCursor = false;
 		FInputModeGameOnly inputMode;
 		controller->SetInputMode(inputMode);
 	};
 }
 
-void UMultiplayerMenu::onCreateSessionComplete(bool bWasSuccessfull)
+void UMultiplayerMenu::onCreateSessionCompleted(bool bWasSuccessfull)
 {
 	if (bWasSuccessfull)
 	{
@@ -52,16 +65,60 @@ void UMultiplayerMenu::onCreateSessionComplete(bool bWasSuccessfull)
 	}
 }
 
+void UMultiplayerMenu::onFindSessionCompleted(const TArray<FOnlineSessionSearchResult>& searchResults, bool bWasSuccessful)
+{
+	if (!multiplayerSessionSubSystem)return;
+
+		for (const auto& result : searchResults)
+		{
+			FString tempMatchType{};
+			result.Session.SessionSettings.Get(FName(TEXT("MatchType")),tempMatchType);
+			if (tempMatchType == matchType)
+			{
+				if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("session found  : %s"),*result.GetSessionIdStr() ));
+				multiplayerSessionSubSystem->joinSession(result);
+				return;
+
+			}
+		}
+}
+
+void UMultiplayerMenu::onJoinSessionCompleted(EOnJoinSessionCompleteResult::Type result)
+{
+	if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("joining Address")));
+	IOnlineSubsystem* subSystem = IOnlineSubsystem::Get();
+	if (subSystem)
+	{
+		IOnlineSessionPtr sessionInterface = subSystem->GetSessionInterface();
+		if (sessionInterface.IsValid())
+		{
+			FString address{};
+			sessionInterface->GetResolvedConnectString(NAME_GameSession, address);
+			APlayerController* playerController = GetGameInstance()->GetFirstLocalPlayerController();
+			if (playerController)
+			{
+				playerController->ClientTravel(address,ETravelType::TRAVEL_Absolute)	;
+			}
+		}
+	}
+}
+
+void UMultiplayerMenu::onDestroySessionCompleted(bool bWasSuccessfull)
+{
+}
+
+void UMultiplayerMenu::onStartSessionCompleted(bool bWasSuccessfull)
+{
+}
+
 void UMultiplayerMenu::onJoinBtnPressed()
 {
-	if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Join Button Pressed")));
+	if (multiplayerSessionSubSystem)multiplayerSessionSubSystem->findSession(10000);
 }
 
 void UMultiplayerMenu::onHostBtnPressed()
 {
-	if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Yellow, FString(TEXT("Host Button Pressed")));
-	if (multiplayerSessionSubSystem)multiplayerSessionSubSystem->createSession(numberOfPublicConnection,MatchType);
-
+	if (multiplayerSessionSubSystem)multiplayerSessionSubSystem->createSession(numberOfPublicConnection,matchType);
 }
 
 bool UMultiplayerMenu::Initialize()

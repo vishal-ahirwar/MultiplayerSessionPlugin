@@ -16,7 +16,7 @@
 //
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemCreateSessionDelegate, bool, bWasSuccessfull);
-DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerSubSystemJoinSessionDelegate, const TArray<FOnlineSessionSearchResult>&searchResults,bool bWasSuccessful);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FMultiplayerSubSystemFindSessionDelegate, const TArray<FOnlineSessionSearchResult>&searchResults,bool bWasSuccessful);
 DECLARE_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemJoinSessionCompleteDelegate,EOnJoinSessionCompleteResult::Type result);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemDestroySessionDelegate, bool, bWasSuccessful);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMultiplayerSubSystemStartSessionDelegate, bool, bWasSuccessfulls);
@@ -32,7 +32,14 @@ public:
 	void joinSession(const FOnlineSessionSearchResult&/*search results as out param*/);//join session
 	void destroySession();//destroy session
 	void startSession();//start the actual session after creation of session
+
+	//Custom delegates
 	FMultiplayerSubSystemCreateSessionDelegate multiplayerSubSystemCreateSessionDelegate;
+	FMultiplayerSubSystemFindSessionDelegate multiplayerSubSystemFindSessionDelegate;
+	FMultiplayerSubSystemJoinSessionCompleteDelegate multiplayerSubSystemJoinsessionDelegate;
+	FMultiplayerSubSystemDestroySessionDelegate multiplayerSubSystemDestroySessionDelegate;
+	FMultiplayerSubSystemStartSessionDelegate multiplayerSubSystemStartSessionDelegate;
+
 private:
 	IOnlineSessionPtr sessionInterface;
 	//delegate and delegate handles to store them for clearence of delegates
@@ -57,6 +64,7 @@ private:
 	//...
 
 	TSharedPtr<FOnlineSessionSettings>sessionSettings;
+	TSharedPtr<FOnlineSessionSearch>sessionSearch;
 protected:
 	//Callbacks for Delegates 
 	void onCreateSessionComplete(FName sessionName, bool bWasSuccessfull);

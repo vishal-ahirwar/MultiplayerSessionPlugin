@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include"Interfaces/OnlineSessionInterface.h"
+#include"OnlineSessionSettings.h"
 #include "Blueprint/UserWidget.h"
 #include "MultiplayerMenu.generated.h"
 
@@ -20,10 +22,23 @@ private:
 	void MenuTearDown();
 
 	UFUNCTION()
-		void onCreateSessionComplete(bool bWasSuccessfull);
+		void onCreateSessionCompleted(bool bWasSuccessfull);
+
+
+		void onFindSessionCompleted(const TArray<FOnlineSessionSearchResult>& searchResults, bool bWasSuccessful);
+
+
+		void onJoinSessionCompleted(EOnJoinSessionCompleteResult::Type result);
+	
+	UFUNCTION()
+		void onDestroySessionCompleted(bool bWasSuccessfull);
+
+	UFUNCTION()
+		void onStartSessionCompleted(bool bWasSuccessfull);
+
 
 	int32 numberOfPublicConnection{};
-	FString MatchType{};
+	FString matchType{};
 private:
 	//session sub system designed to handle all theb online session function;
 	class UMultiplayerSessionSubSystem* multiplayerSessionSubSystem;
