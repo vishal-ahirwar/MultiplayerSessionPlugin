@@ -8,10 +8,11 @@
 #include"MultiplayerSessionSubSystem.h"
 
 
-void UMultiplayerMenu::MenuSetup(int32 numPublicConnecttion,FString typeOfMatch)
+void UMultiplayerMenu::MenuSetup(int32 numPublicConnecttion,FString typeOfMatch,FString lobbyUrl)
 {
 	this->numberOfPublicConnection = numPublicConnecttion;
 	this->matchType = typeOfMatch;
+	this->lobbyPath = lobbyUrl;
 	AddToViewport();
 	UWorld* world = GetWorld();
 	if (world)
@@ -55,12 +56,14 @@ void UMultiplayerMenu::MenuTearDown()
 
 void UMultiplayerMenu::onCreateSessionCompleted(bool bWasSuccessfull)
 {
+	if (hostButton)hostButton->SetIsEnabled(true);
 	if (bWasSuccessfull)
 	{
 		UWorld* world = GetWorld();
 		if (world)
 		{
-			world->ServerTravel(TEXT("/Game/ThirdPerson/Maps/ThirdPersonMap?listen"), ETravelType::TRAVEL_Absolute);
+			lobbyPath.Append("?listen");
+			world->ServerTravel(this->lobbyPath, ETravelType::TRAVEL_Absolute);
 		}
 	}
 }
@@ -68,7 +71,10 @@ void UMultiplayerMenu::onCreateSessionCompleted(bool bWasSuccessfull)
 void UMultiplayerMenu::onFindSessionCompleted(const TArray<FOnlineSessionSearchResult>& searchResults, bool bWasSuccessful)
 {
 	if (!multiplayerSessionSubSystem)return;
-
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString(TEXT("find session callback broadcast called! !")));
+	}
 		for (const auto& result : searchResults)
 		{
 			FString tempMatchType{};
@@ -81,10 +87,17 @@ void UMultiplayerMenu::onFindSessionCompleted(const TArray<FOnlineSessionSearchR
 
 			}
 		}
+		if (!bWasSuccessful || searchResults.Num() == 0)
+		{
+			if (joinButton)joinButton->SetIsEnabled(true);
+	}
 }
 
 void UMultiplayerMenu::onJoinSessionCompleted(EOnJoinSessionCompleteResult::Type result)
 {
+	
+	if(result!=EOnJoinSessionCompleteResult::Success)if (joinButton)joinButton->SetIsEnabled(true);
+
 	if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("joining Address")));
 	IOnlineSubsystem* subSystem = IOnlineSubsystem::Get();
 	if (subSystem)
@@ -113,11 +126,17 @@ void UMultiplayerMenu::onStartSessionCompleted(bool bWasSuccessfull)
 
 void UMultiplayerMenu::onJoinBtnPressed()
 {
+	if (joinButton)joinButton->SetIsEnabled(false);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1,15.f,FColor::Blue,FString(TEXT("Join Btn Pressed!")));
+	}
 	if (multiplayerSessionSubSystem)multiplayerSessionSubSystem->findSession(10000);
 }
 
 void UMultiplayerMenu::onHostBtnPressed()
 {
+	if (hostButton)hostButton->SetIsEnabled(false);
 	if (multiplayerSessionSubSystem)multiplayerSessionSubSystem->createSession(numberOfPublicConnection,matchType);
 }
 

@@ -19,12 +19,12 @@
 			]
 		},
 		{
-			"Name": "OnlineSubsystemSteam",
-			"Enabled": true
-		},
-		{
 			"Name": "Paper2D",
 			"Enabled": false
+		},
+		{
+			"Name": "OnlineSubsystemEOS",
+			"Enabled": true
 		}
 	]
 }

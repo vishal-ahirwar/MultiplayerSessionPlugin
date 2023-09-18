@@ -17,7 +17,7 @@ class MULTIPLAYERONLINESESSION_API UMultiplayerMenu : public UUserWidget
 	GENERATED_BODY()
 public:
 	UFUNCTION(BlueprintCallable)
-		void MenuSetup(int32 numPublicConnecttion=4,FString typeOfMatch=FString(TEXT("FreeForAll")));
+		void MenuSetup(int32 numPublicConnecttion=4,FString typeOfMatch=FString(TEXT("FreeForAll")),FString lobbyUrl=FString(TEXT("/Game/ThirdPerson/Maps/ThirdPersonMap")));
 private:
 	void MenuTearDown();
 
@@ -39,6 +39,7 @@ private:
 
 	int32 numberOfPublicConnection{};
 	FString matchType{};
+	FString lobbyPath{};
 private:
 	//session sub system designed to handle all theb online session function;
 	class UMultiplayerSessionSubSystem* multiplayerSessionSubSystem;

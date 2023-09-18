@@ -31,6 +31,7 @@ void UMultiplayerSessionSubSystem::createSession(const int& numPublicConnection,
 	this->sessionSettings->bUseLobbiesIfAvailable = true;
 	this->sessionSettings->bShouldAdvertise = true;
 	this->sessionSettings->bUsesPresence = true;
+	this->sessionSettings->bUseLobbiesVoiceChatIfAvailable = true;
 	this->sessionSettings->NumPublicConnections = numPublicConnection;
 	this->sessionSettings->Set(FName(TEXT("MatchType")), MatchType,EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 	if (!sessionInterface->CreateSession(*player->GetPreferredUniqueNetId(), NAME_GameSession, *sessionSettings))
@@ -44,7 +45,10 @@ void UMultiplayerSessionSubSystem::createSession(const int& numPublicConnection,
 void UMultiplayerSessionSubSystem::findSession(const int& maxResults)
 {
 	if (!sessionInterface.IsValid())return;
-
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString(TEXT("find session callback called!")));
+	}
 	findSessionHandle = sessionInterface->AddOnFindSessionsCompleteDelegate_Handle(findSessionCompleteDelegate);
 
 	sessionSearch = MakeShareable(new FOnlineSessionSearch());
@@ -54,11 +58,13 @@ void UMultiplayerSessionSubSystem::findSession(const int& maxResults)
 
 
 	ULocalPlayer* player = GetWorld()->GetFirstLocalPlayerFromController();
-	if (!player)return;
 
 	if (!sessionInterface->FindSessions(*player->GetPreferredUniqueNetId(), sessionSearch.ToSharedRef()))
 	{
-
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString(TEXT("[Error]find session callback called! !")));
+		}
 		sessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(findSessionHandle);
 		multiplayerSubSystemFindSessionDelegate.Broadcast(TArray<FOnlineSessionSearchResult>(),false);
 	};
@@ -76,7 +82,6 @@ void UMultiplayerSessionSubSystem::joinSession(const FOnlineSessionSearchResult&
 
 	ULocalPlayer* player = GetWorld()->GetFirstLocalPlayerFromController();
 
-	if (!player)return;
 	if (!sessionInterface->JoinSession(*player->GetPreferredUniqueNetId(), NAME_GameSession, searchResults))
 	{
 		sessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(joinSessionHandle);
@@ -100,8 +105,17 @@ void UMultiplayerSessionSubSystem::onFindSessionComplete(bool bWasSuccessfull)
 	{
 		sessionInterface->ClearOnFindSessionsCompleteDelegate_Handle(findSessionHandle);
 	}
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString(TEXT("onFind session callback called! !")));
+	};
+
 	if (sessionSearch->SearchResults.Num() <= 0)
 	{
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString(TEXT("[Error]no session found called! !")));
+		}
 		multiplayerSubSystemFindSessionDelegate.Broadcast(TArray<FOnlineSessionSearchResult>(), false);
 	}
 	multiplayerSubSystemFindSessionDelegate.Broadcast(sessionSearch->SearchResults, bWasSuccessfull);
@@ -113,19 +127,12 @@ void UMultiplayerSessionSubSystem::onJoinSessionComplete(FName sessionName, EOnJ
 	{
 		sessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(joinSessionHandle);
 	};
-
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString(TEXT("join session callback called! !")));
+	}
 	multiplayerSubSystemJoinsessionDelegate.Broadcast(result);
-	//FString address{};
-	//sessionInterface->GetResolvedConnectString(sessionName, address);
-	//sessionInterface->ClearOnJoinSessionCompleteDelegate_Handle(joinSessionHandle);
-	//multiplayerSubSystemJoinsessionDelegate.Broadcast(result);
-	//APlayerController* controller = GetWorld()->GetFirstPlayerController();
-	//if (controller)
-	//{
-	//	if (GEngine)GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Blue, FString::Printf(TEXT("joining Address : %s"), *address));
-	//	controller->ClientTravel(address, ETravelType::TRAVEL_Absolute);
 
-	//}
 };
 
 void UMultiplayerSessionSubSystem::onDestroySessionComplete(FName sessionName, bool bWasSuccessfull) {};
